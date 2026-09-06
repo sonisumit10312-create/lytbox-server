@@ -27,7 +27,7 @@ class LyteboxHomeScreen extends StatefulWidget {
 
 class _LyteboxHomeScreenState extends State<LyteboxHomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final String _serverBaseUrl = "https://github.dev"; // आपका क्लाउड सर्वर लिंक
+  final String _serverBaseUrl = "https://cdly-lamp-q9qr655wjw4f4qgw-3000.app.github.dev"; // आपका क्लाउड सर्वर लिंक
 
   final List<Map<String, String>> _games = [
     {"name": "BGMI Mobile", "fps": "90 FPS", "type": "Online Low-Data"},
