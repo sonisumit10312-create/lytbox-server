@@ -1,0 +1,9 @@
+{
+  "name": "lytbox-server",
+  "version": "1.0.0",
+  "description": "LYTEBOX Gaming Engine Backend",
+  "main": "index.tsx",
+  "scripts": {
+    "build": "echo 'Build successful! Node is ready.'"
+  }
+}

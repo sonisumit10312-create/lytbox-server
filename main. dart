@@ -1,0 +1,155 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+
+void main() {
+  runApp(const LyteboxApp());
+}
+
+class LyteboxApp extends StatelessWidget {
+  const LyteboxApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(), // गेमिंग लुक के लिए डार्क थीम
+      home: const LyteboxHomeScreen(),
+    );
+  }
+}
+
+class LyteboxHomeScreen extends StatefulWidget {
+  const LyteboxHomeScreen({super.key});
+
+  @override
+  State<LyteboxHomeScreen> createState() => _LyteboxHomeScreenState();
+}
+
+class _LyteboxHomeScreenState extends State<LyteboxHomeScreen> {
+  // 1. सर्च बार के लिए कंट्रोलर
+  final TextEditingController _searchController = TextEditingController();
+  
+  // 2. आपके क्लाउड सर्वर का लाइव लिंक (इसे अपने Codespaces URL से बदल सकते हैं)
+  final String _serverBaseUrl = "https://github.dev"; 
+
+  // गेम लिस्ट डेटाबेस (क्लाउड पर चलने के लिए)
+  final List<Map<String, String>> _games = [
+    {"name": "BGMI Mobile", "fps": "90 FPS", "type": "Online Low-Data"},
+    {"name": "Free Fire Max", "fps": "60 FPS", "type": "Offline Cache"},
+    {"name": "GTA V Cloud", "fps": "60 FPS", "type": "Ultra-Low Latency"},
+  ];
+
+  List<Map<String, String>> _filteredGames = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredGames = _games;
+  }
+
+  // सर्च करने का फंक्शन
+  void _filterGames(String query) {
+    setState(() {
+      _filteredGames = _games
+          .where((game) => game['name']!.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+
+  // क्लाउड गेम प्लेयर स्क्रीन पर भेजने का फंक्शन
+  void _playGame(String gameName) {
+    if (gameName.isEmpty) return;
+
+    // गेम को बिना रैम लोड के सर्वर नोड पर लोड करना
+    String gameUrl = "$_serverBaseUrl/play?game=${Uri.encodeComponent(gameName)}";
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CloudGamePlayerScreen(gameName: gameName, gameUrl: gameUrl),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("⚡ LYTEBOX LIVE"),
+        centerTitle: true,
+        backgroundColor: Colors.black,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // असली वर्किंग सर्च बार
+            TextField(
+              controller: _searchController,
+              onChanged: _filterGames,
+              decoration: InputDecoration(
+                hintText: "Type game name (e.g. BGMI)...",
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.play_arrow, color: Colors.green),
+                  onPressed: () => _playGame(_searchController.text),
+                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            // स्मूथ गेम लिस्टिंग कार्ड्स
+            Expanded(
+              child: ListView.builder(
+                itemCount: _filteredGames.length,
+                itemBuilder: (context, index) {
+                  final game = _filteredGames[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      leading: const Icon(Icons.bolt, color: Colors.amber, size: 30),
+                      title: Text(game['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text("${game['type']} | ${game['fps']}"),
+                      trailing: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+                        onPressed: () => _playGame(game['name']!),
+                        child: const Text("PLAY"),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// यह स्क्रीन आपके क्लाउड सर्वर का वीडियो/गेमप्ले बिना रैम खाए मोबाइल पर दिखाएगी
+class CloudGamePlayerScreen extends StatelessWidget {
+  final String gameName;
+  final String gameUrl;
+
+  const CloudGamePlayerScreen({super.key, required this.gameName, required this.gameUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(title: Text("Streaming: $gameName"), backgroundColor: Colors.black),
+      body: InAppWebView(
+        initialUrlRequest: URLRequest(url: WebUri(gameUrl)),
+        initialSettings: InAppWebViewSettings(
+          useWideViewPort: true,
+          loadWithOverviewMode: true,
+          allowsInlineMediaPlayback: true, // बिना लैग वीडियो प्ले के लिए
+          sharedCookiesEnabled: true,
+        ),
+      ),
+    );
+  }
+}
