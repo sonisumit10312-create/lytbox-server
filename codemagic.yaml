@@ -8,8 +8,10 @@ workflows:
       events:
         - push
     scripts:
-      - name: Fetch dependencies and Build APK
+      - name: Clean and Build APK
         script: |
+          cd $CM_BUILD_DIR/LYTBOX-SERVER
+          flutter clean
           flutter pub get
           flutter build apk --release
     artifacts:
