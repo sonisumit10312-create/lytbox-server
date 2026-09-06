@@ -4,9 +4,6 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m2
     working_directory: LYTBOX-SERVER
-    triggering:
-      events:
-        - push
     build:
       artifacts:
         - LYTBOX-SERVER/build/app/outputs/flutter-apk/*.apk
